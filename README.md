@@ -299,7 +299,7 @@ Show playbook snippet for specified module
     ansible-doc -i <module>
 
 Modules that you have to know:
-    Yum, apt, shell, command, raw, script, service, copy, synchronize, unarchive, stat, git, file, template, fetch
+    `Yum`, `apt`, `shell`, `command`, `raw`, `script`, `service`, `copy`, `synchronize`, `unarchive`, `stat`, `git`, `file`, `template`, `fetch`, `meta`, `setup`, `lineinfile`, `set_fact`
 
 # Variables
 
@@ -347,6 +347,16 @@ YAML requires an item starting with a variable substitution to be quoted.
 * `inventory_dir` (location of the inventory)
 * `inventoty_file` (name of the inventory)
 
+## Variable Precedence:
+It should be rare that you would need to dig into the details of which variable is used when you define the same variable in five different places, but since there are odd occasions where this is thecase, Ansible’s documentation provides the following ranking:
+
+1. Variables from the command line (-ein the command line) always win.
+2. Connection variables defined in inventory (ansible_ssh_user, etc.).
+3. “Most everything else” (command line switches, variables defined in a play, included variables,role variables, etc.).
+4. Other (non-connection) inventory variables.
+5. Local facts and automatically discovered facts (viagather_facts).
+6. Role default variables (inside a role’sdefaults/main.ymlfile).
+
 ## Facts:
 
 Run `ansible hostname -m setup`, but in particular:
@@ -360,6 +370,8 @@ Run `ansible hostname -m setup`, but in particular:
 * `ansible_pkg_mgr`
 * `ansible_default_ipv4.address`
 * `ansible_default_ipv6.address`
+
+Run `ansible hostname -m setup -a 'filter="*ditribution*"'`  to gather only ditribution related facts such as os name.
 
 ## Content of 'registered' variables:
 
