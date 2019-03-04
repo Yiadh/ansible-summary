@@ -299,7 +299,7 @@ Show playbook snippet for specified module
     ansible-doc -i <module>
 
 Modules that you have to know:
-    `Yum`, `apt`, `shell`, `command`, `raw`, `script`, `service`, `copy`, `synchronize`, `unarchive`, `stat`, `git`, `file`, `template`, `fetch`, `meta`, `setup`, `lineinfile`, `set_fact`
+    `Yum`, `apt`, `shell`, `command`, `raw`, `script`, `service`, `copy`, `synchronize`, `unarchive`, `stat`, `git`, `file`, `template`, `fetch`, `meta`, `setup`, `lineinfile`, `set_fact`, `wait_for`
 
 # Variables
 
@@ -478,11 +478,24 @@ Lookup plugins also support loop iteration (see below).
 * `var is defined`, `var is not defined`
 * `<condition1> and <condition2>` (also `or`?)
 
+The following expressions evaluate to 'true':
+    1 in [1, 2, 3]
+    'see' in 'Can you see me?'
+    foo != bar
+    (1 < 2) and ('a' not in 'best')
+
+The following expressions evaluate to 'false':
+    4 in [1, 2, 3]
+    foo == bar
+    (foo != foo) or (a in [1, 2, 3])
+
 Combined with `with_items`, the when statement is processed for each item.
 
 `when` can also be applied to includes and roles. Conditional Imports
 and variable substitution in file and template names can avoid the
 need for explicit conditionals.
+
+Ansible uses expressions and built-ins with `when`, `changed_when`, and `failed_when` so you can describe these things to Ansible with as much precisionas possible.
 
 # Loops
 
