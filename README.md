@@ -403,34 +403,32 @@ responses from the module.
 
 # Jinja2 templates
 
-Example
-'''
-{% set nb_yarn_applications = hostvars[groups[cluster + '_workers'][0]].nb_yarn_applications %}
+jinja2 template Example:
 
-_______________________________________________________________________________________________
-CLUSTER STATUS:
-{% if nb_yarn_applications == '0' %}
-No Yarn application is running.
-{% else %}
-NB running yarn applications: {{'"%s"' | format(hostvars[groups[cluster + '_workers'][0]].nb_yarn_applications) }}
-{% endif %}
-_______________________________________________________________________________________________
-WORKERS STATUS:
+    {% set nb_yarn_applications = hostvars[groups[cluster + '_workers'][0]].nb_yarn_applications %}
 
-{{'"%s", "%s", "%s", "%s"' | format("HOST", "NB YARN CONTAINERS", "MFS TIMEOUT", "MFS PS") }}
-{% for h in groups[cluster + '_workers'] %}
-{{'"%s", "%s", "%s", "%s"' | format(hostvars[h].inventory_hostname, hostvars[h].nb_yarn_containers, hostvars[h].timeout, hostvars[h].nb_mfs_jobs) }}
-{% endfor %}
+    _______________________________________________________________________________________________
+    CLUSTER STATUS:
+    {% if nb_yarn_applications == '0' %}
+    No Yarn application is running.
+    {% else %}
+    NB running yarn applications: {{'"%s"' | format(hostvars[groups[cluster + '_workers'][0]].nb_yarn_applications) }}
+    {% endif %}
+    _______________________________________________________________________________________________
+    WORKERS STATUS:
 
-_______________________________________________________________________________________________
-GATEWAYS STATUS:
+    {{'"%s", "%s", "%s", "%s"' | format("HOST", "NB YARN CONTAINERS", "MFS TIMEOUT", "MFS PS") }}
+    {% for h in groups[cluster + '_workers'] %}
+    {{'"%s", "%s", "%s", "%s"' | format(hostvars[h].inventory_hostname, hostvars[h].nb_yarn_containers, hostvars[h].timeout, hostvars[h].nb_mfs_jobs) }}
+    {% endfor %}
 
-{{'"%s", "%s", "%s"' | format("HOST", "MFS TIMEOUT", "MFS PS") }}
-{% for h in groups[cluster + '_gateways'] %}
-{{'"%s", "%s", "%s"' | format(hostvars[h].inventory_hostname, hostvars[h].timeout, hostvars[h].nb_mfs_jobs) }}
-{% endfor %}
+    _______________________________________________________________________________________________
+    GATEWAYS STATUS:
 
-'''
+    {{'"%s", "%s", "%s"' | format("HOST", "MFS TIMEOUT", "MFS PS") }}
+    {% for h in groups[cluster + '_gateways'] %}
+    {{'"%s", "%s", "%s"' | format(hostvars[h].inventory_hostname, hostvars[h].timeout, hostvars[h].nb_mfs_jobs) }}
+    {% endfor %}
 
 # Filters
 
