@@ -401,6 +401,37 @@ responses from the module.
 * `template_fullpath`: the absolute path of the template
 * `template_run_date`: the date that the template was rendered
 
+# Jinja2 templates
+
+Example
+'''
+{% set nb_yarn_applications = hostvars[groups[cluster + '_workers'][0]].nb_yarn_applications %}
+
+_______________________________________________________________________________________________
+CLUSTER STATUS:
+{% if nb_yarn_applications == '0' %}
+No Yarn application is running.
+{% else %}
+NB running yarn applications: {{'"%s"' | format(hostvars[groups[cluster + '_workers'][0]].nb_yarn_applications) }}
+{% endif %}
+_______________________________________________________________________________________________
+WORKERS STATUS:
+
+{{'"%s", "%s", "%s", "%s"' | format("HOST", "NB YARN CONTAINERS", "MFS TIMEOUT", "MFS PS") }}
+{% for h in groups[cluster + '_workers'] %}
+{{'"%s", "%s", "%s", "%s"' | format(hostvars[h].inventory_hostname, hostvars[h].nb_yarn_containers, hostvars[h].timeout, hostvars[h].nb_mfs_jobs) }}
+{% endfor %}
+
+_______________________________________________________________________________________________
+GATEWAYS STATUS:
+
+{{'"%s", "%s", "%s"' | format("HOST", "MFS TIMEOUT", "MFS PS") }}
+{% for h in groups[cluster + '_gateways'] %}
+{{'"%s", "%s", "%s"' | format(hostvars[h].inventory_hostname, hostvars[h].timeout, hostvars[h].nb_mfs_jobs) }}
+{% endfor %}
+
+'''
+
 # Filters
 
 [playbooks\_variables.html](http://docs.ansible.com/playbooks_variables.html)
