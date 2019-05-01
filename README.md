@@ -246,17 +246,86 @@ which don't *seem* to be mentioned in the documentation:
 
 ## Strategies
 
-Strategies are a way to control play execution. By default, plays run with a linear strategy, in which all hosts will run each task before any host starts the next task, using the number of forks (default 5) to parallelize.
+Strategies are a way to control play execution. Ansible supports 3 types of stategies: Linear, Free and Debug
+
+### Linear
+
+By default, plays run with a linear strategy, in which all hosts will run each task before any host starts the next task, using the number of forks (default 5) to parallelize.
+
+#### Serial
 
 The serial directive can ‘batch’ this behaviour to a subset of the hosts, which then run to completion of the play before the next ‘batch’ starts.
 
-A second strategy ships with Ansible - free - which allows each host to run until the end of the play as fast as it can.:
+The serial keyword can be specified as a number, percentage, list of numbers/percentages, which will be applied to the total number of hosts in a play.
+
+Examples:
+  - name: test play
+    hosts: webservers
+    serial: "30%"
+
+  - name: test play
+    hosts: webservers
+    serial:
+    - 1
+    - 5
+    - 10
+
+In the above example, the first batch would contain a single host, the next would contain 5 hosts, and (if there are any hosts left), every following batch would contain 10 hosts until all available hosts are used.
+
+
+  - name: test play
+    hosts: webservers
+    serial:
+    - "10%"
+    - "20%"
+    - "100%"
+
+You can also mix and match the values:
+
+  - name: test play
+    hosts: webservers
+    serial:
+    - 1
+    - 5
+    - "20%"
+
+Note:
+- If the number of hosts does not divide equally into the number of passes, the final pass will contain the remainder.
+- No matter how small the percentage, the number of hosts per pass will always be 1 or greater.
+- Ansible will continue executing actions as long as there are hosts in the batch that have not yet failed.
+
+#### Maximum Failure Percentage
+
+y default, Ansible will continue executing actions as long as there are hosts in the batch that have not yet failed. The batch size for a play is determined by the serial parameter. If serial is not set, then batch size is all the hosts specified in the hosts: field. In some situations, such as with the rolling updates described above, it may be desirable to abort the play when a certain threshold of failures have been reached. To achieve this, you can set a maximum failure percentage on a play as follows:
+
+  - hosts: webservers
+    max_fail_percentage: 30
+    serial: 10
+
+In the above example, if more than 3 of the 10 servers in the group were to fail, the rest of the play would be aborted.
+
+#### Interrupt execution on any error
+
+With the ‘’any_errors_fatal’’ option, any failure on any host in a multi-host play will be treated as fatal and Ansible will exit immediately without waiting for the other hosts.
+
+If all hosts within the same play fail, the play wil behave as any_errors_fatal option enabled
+
+### Free
+Another strategy ships with Ansible - free - which allows each host to run until the end of the play as fast as it can.:
 
     - hosts: all
       strategy: free
       tasks:
       ...
 
+### Debug
+
+Ansible includes a debugger as part of the strategy plugins. This debugger enables you to debug as task. You have access to all of the features of the debugger in the context of the task. 
+
+    - hosts: all
+      strategy: debug
+      tasks:
+      ...
 
 # Roles
 
@@ -401,7 +470,7 @@ responses from the module.
 * `template_fullpath`: the absolute path of the template
 * `template_run_date`: the date that the template was rendered
 
-# Jinja2 templates
+## Jinja2 templates
 
 jinja2 template Example:
 
@@ -525,6 +594,74 @@ and variable substitution in file and template names can avoid the
 need for explicit conditionals.
 
 Ansible uses expressions and built-ins with `when`, `changed_when`, and `failed_when` so you can describe these things to Ansible with as much precisionas possible.
+
+# Advanced Operations
+
+## Asynchronous Actions and Polling
+
+By default tasks in playbooks block, meaning the connections stay open until the task is done on each node. This may not always be desirable, or you may be running operations that take longer than the SSH timeout.
+
+To avoid blocking or timeout issues, you can use asynchronous mode to run all of your tasks at once and then poll until they are done.
+
+  tasks:
+  - name: simulate long running op (15 sec), wait for up to 45 sec, poll every 5 sec
+    command: /bin/sleep 15
+    async: 45
+    poll: 5
+
+  - name: simulate long running op, allow to run for 45 sec, fire and forget
+    command: /bin/sleep 15
+    async: 45
+    poll: 0
+
+## Blocks
+
+Blocks allow for logical grouping of tasks and in play error handling.
+
+  - name: Attempt and graceful roll back demo
+    block:
+      - debug:
+          msg: 'I execute normally'
+      - name: i force a failure
+        command: /bin/false
+      - debug:
+          msg: 'I never execute, due to the above task failing, :-('
+    rescue:
+      - debug:
+          msg: 'I caught an error'
+      - name: i force a failure in middle of recovery! >:-)
+        command: /bin/false
+      - debug:
+          msg: 'I also never execute :-('
+    always:
+      - debug:
+          msg: "This always executes"
+
+## Delegation
+
+## Local Actions
+
+## Run once
+
+Run a task one time for a batch of hosts. This can be achieved by configuring “run_once” on a task
+
+  tasks:
+    - command: /opt/application/upgrade_db.py
+      run_once: true
+
+This directive forces the task to attempt execution on the first host in the current batch and then applies all results and facts to all the hosts in the same batch.
+
+This approach is similar to applying a conditional to a task such as:
+
+  - command: /opt/application/upgrade_db.py
+    when: inventory_hostname == webservers[0]
+
+But the results are applied to all the hosts.
+
+
+
+
+## Rolling Updates
 
 # Loops
 
