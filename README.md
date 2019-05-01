@@ -603,39 +603,39 @@ By default tasks in playbooks block, meaning the connections stay open until the
 
 To avoid blocking or timeout issues, you can use asynchronous mode to run all of your tasks at once and then poll until they are done.
 
-  tasks:
-  - name: simulate long running op (15 sec), wait for up to 45 sec, poll every 5 sec
-    command: /bin/sleep 15
-    async: 45
-    poll: 5
+    tasks:
+    - name: simulate long running op (15 sec), wait for up to 45 sec, poll every 5 sec
+      command: /bin/sleep 15
+      async: 45
+      poll: 5
 
-  - name: simulate long running op, allow to run for 45 sec, fire and forget
-    command: /bin/sleep 15
-    async: 45
-    poll: 0
+    - name: simulate long running op, allow to run for 45 sec, fire and forget
+      command: /bin/sleep 15
+      async: 45
+      poll: 0
 
 ## Blocks
 
 Blocks allow for logical grouping of tasks and in play error handling.
 
-  - name: Attempt and graceful roll back demo
-    block:
-      - debug:
-          msg: 'I execute normally'
-      - name: i force a failure
-        command: /bin/false
-      - debug:
-          msg: 'I never execute, due to the above task failing, :-('
-    rescue:
-      - debug:
-          msg: 'I caught an error'
-      - name: i force a failure in middle of recovery! >:-)
-        command: /bin/false
-      - debug:
-          msg: 'I also never execute :-('
-    always:
-      - debug:
-          msg: "This always executes"
+    - name: Attempt and graceful roll back demo
+      block:
+        - debug:
+            msg: 'I execute normally'
+        - name: i force a failure
+          command: /bin/false
+        - debug:
+            msg: 'I never execute, due to the above task failing, :-('
+      rescue:
+        - debug:
+            msg: 'I caught an error'
+        - name: i force a failure in middle of recovery! >:-)
+          command: /bin/false
+        - debug:
+            msg: 'I also never execute :-('
+      always:
+        - debug:
+            msg: "This always executes"
 
 ## Delegation
 
@@ -645,16 +645,16 @@ Blocks allow for logical grouping of tasks and in play error handling.
 
 Run a task one time for a batch of hosts. This can be achieved by configuring “run_once” on a task
 
-  tasks:
-    - command: /opt/application/upgrade_db.py
-      run_once: true
+    tasks:
+      - command: /opt/application/upgrade_db.py
+        run_once: true
 
 This directive forces the task to attempt execution on the first host in the current batch and then applies all results and facts to all the hosts in the same batch.
 
 This approach is similar to applying a conditional to a task such as:
 
-  - command: /opt/application/upgrade_db.py
-    when: inventory_hostname == webservers[0]
+    - command: /opt/application/upgrade_db.py
+      when: inventory_hostname == webservers[0]
 
 But the results are applied to all the hosts.
 
@@ -662,6 +662,10 @@ But the results are applied to all the hosts.
 
 
 ## Rolling Updates
+
+By default, Ansible will try to manage all of the machines referenced in a play in parallel. For a rolling update use case, you can define how many hosts Ansible should manage at a single time by using the serial keyword.
+
+For further details, check the strategies section.
 
 # Loops
 
