@@ -541,6 +541,7 @@ jinja2 template Example:
 * `{{ var | search }}`
 * `{{ var | regex }}`
 * `{{ var | regexp_replace('from', 'to' )}}`
+* `{{ var | length }}`
 
 See also [default jinja2
 filters](http://jinja.pocoo.org/docs/templates/#builtin-filters). In
@@ -564,6 +565,10 @@ Lookups can be assigned to variables and will be evaluated each time
 the variable is used.
 
 Lookup plugins also support loop iteration (see below).
+
+For command line documentation:
+
+    ansible-doc -t lookup -l
 
 # Conditions
 
