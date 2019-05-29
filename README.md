@@ -127,6 +127,7 @@ definitions, and roles.
       max_fail_percentage: 30
       connection: local
       serial: 5
+      force_handlers: true  # forcefully execute the handler even if the task fails
       vars:
         http_port: 80
       vars_files:
@@ -349,6 +350,19 @@ Directory structure:
          files/
          templates/
          library/
+         tests/
+           inventory
+           test.yml
+
+# Controlling order of execution
+
+Normally, the tasks of roles execute before the tasks of the playbooks that use them.
+
+Ansible provides a way of overriding this default behavior: the *pre_tasks* and *post_tasks* tasks.
+
+The pre_tasks tasks are performed before any roles are applied.
+
+The post_tasks tasks are performed after all the roles have completed.
 
 # Modules
 
@@ -471,6 +485,28 @@ responses from the module.
 * `template_run_date`: the date that the template was rendered
 
 ## Jinja2 templates
+
+Use {% set VAR = 'value' } for variable declaration
+
+Use {% EXPR %} for expressions or logic (for example, loops or conditional)
+
+{{ EXPR }} are used for outputting the results of an expression or a variable to the end user
+
+Use {# COMMENT #} syntax to enclose comments.
+
+
+Example:
+
+    {# set LOCAL_FACTS variable #}
+    {% set LOCAL_FACTS = ansible_facts['ansible_local'] | default([]) %}
+    {% if LOCAL_FACTS | length == 0 %}
+       no local facts on {{ ansible_hostname }}
+    {% else %}
+       {% for local_fact in LOCAL_FACTS %}
+         {{ local_fact }}
+       {% endfor %}
+    {% endif %}
+
 
 jinja2 template Example:
 
@@ -618,6 +654,14 @@ To avoid blocking or timeout issues, you can use asynchronous mode to run all of
       command: /bin/sleep 15
       async: 45
       poll: 0
+      register: sleep
+
+    - name: Wait for sleep to finish
+      async_status: "jid={{ sleep.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 30
+      delay: 10
 
 ## Blocks
 
